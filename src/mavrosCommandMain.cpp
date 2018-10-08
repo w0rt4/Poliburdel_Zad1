@@ -14,6 +14,12 @@ float missionAltitude = 5;
 int yawMapping;
 #define PI 3.14159265
 
+enum directions
+{
+	FromStartLine = 1,
+	ToStartLine = 2
+};
+
 using json = nlohmann::json;
 
 const uint8_t WAIT_FOR_START = 0;
@@ -219,86 +225,111 @@ bool getCordinates(mavrosCommand command){
 	ifstream theFile("/home/w0rt4/drony/catkin_ws/src/mission1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
-	
-	char comma;
-	
+
 	int ile_x = 2; //longer side
-	int ile_y;
 	
-	int ik,jk, kierunek = 1;
+	int ik,jk;
  	double x, x_wsp_14, x_wsp_12, x_pom;
  	double y, y_wsp_14, y_wsp_12, y_pom;
  	
+ 	int direction = directions.FromStartLine;
+ 	
  	missionAltitude = missionSettings["mission"]["altitude"];
  	pictureFrequency = missionSettings["mission"]["photosFrequency"];
+ 	
  	double leftDownLongitude = missionSettings["mission"]["leftDown"]["longitude"];
  	double leftDownLatitude = missionSettings["mission"]["leftDown"]["latitude"];
  	double leftUpLongitude = missionSettings["mission"]["leftUp"]["longitude"];
  	double leftUpLatitude = missionSettings["mission"]["leftUp"]["latitude"];
  	double rightDownLongitude = missionSettings["mission"]["rightDown"]["longitude"];
  	double rightDownLatitude = missionSettings["mission"]["rightDown"]["latitude"];
- 	ile_y = ceil(command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / 19);
  	
- 	double distanceBetweenSingleScan = command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / ile_y;
+ 	int scanCount = ceil(command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / 19);
+ 	double distanceBetweenSingleScan = command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / scanCount;
+	
+	if(missionAltitude == 0 || leftDownLongitude == 0 || leftUpLongitude == 0 || rightDownLongitude == 0 || leftDownLatitude == 0 || leftUpLatitude == 0 || rightDownLatitude == 0)
+	{
+		return false;
+	}	 
 	
 	pictureFrequency = pictureFrequency * 20;
-	
-	if(missionAltitude == 0 || x1 == 0 || x2 == 0 || x4 == 0 || y1 == 0 || y2 == 0 || y4 == 0)return false;  		 
-	
-	yawMapping = atan( (y2-y1)*0.67 / (x2-x1)*1.11 ) * 180/PI;
+	yawMapping = atan((leftUpLatitude - leftDownLatitude) * 0.67 / (leftUpLongitude - leftDownLongitude) * 1.11) * 180 / PI;
 
-	if(y2-y1>=0 && x2-x1==0)yawMapping = 90;
-	else if(x2-x1<0)yawMapping = 180 + yawMapping;
-	else if(y2-y1<0  && x2-x1==0)yawMapping = 270;
-	else if(y2-y1<0  && x2-x1>0)yawMapping = 360 + yawMapping;
+	if(leftUpLatitude - leftDownLatitude >= 0 && leftUpLongitude - leftDownLongitude == 0)
+	{
+		yawMapping = 90;
+	}
+	else if(leftUpLongitude - leftDownLongitude < 0)
+	{
+		yawMapping = 180 + yawMapping;
+	}
+	else if(leftUpLatitude - leftDownLatitude < 0  && leftUpLongitude - leftDownLongitude == 0)
+	{
+		yawMapping = 270;
+	}
+	else if(leftUpLatitude - leftDownLatitude < 0  && leftUpLongitude - leftDownLongitude > 0)
+	{
+		yawMapping = 360 + yawMapping;
+	}
 	
 	yawMapping = yawMapping % 360;
 				
- 	x_wsp_12 = x2-x1;
-	y_wsp_12 = y2-y1;
-	x_wsp_14 = x4-x1;
-	y_wsp_14 = y4-y1;
-	x_wsp_12=x_wsp_12/(ile_x - 1);
-	y_wsp_12=y_wsp_12/(ile_x - 1);
-	x_wsp_14=x_wsp_14/(ile_y - 1);
-	y_wsp_14=y_wsp_14/(ile_y - 1);
-	x_pom = x1;
-	y_pom = y1;
+ 	x_wsp_12 = leftUpLongitude - leftDownLongitude;
+	y_wsp_12 = leftUpLatitude - leftDownLatitude;
+	x_wsp_14 = rightDownLongitude - leftDownLongitude;
+	y_wsp_14 = rightDownLatitude - leftDownLatitude;
+	x_wsp_12=x_wsp_12 / (ile_x - 1);
+	y_wsp_12=y_wsp_12 / (ile_x - 1);
+	x_wsp_14=x_wsp_14 / (scanCount - 1);
+	y_wsp_14=y_wsp_14 / (scanCount - 1);
+	x_pom = leftDownLongitude;
+	y_pom = leftDownLatitude;
  	
- 	for(jk=0;jk<ile_y;jk++){
-		if(kierunek == 1){
-		x = x_pom;
-		y = y_pom;
-		latitude[ile] = x;
-		longitude[ile] = y;
-		ile++;
-			for(ik=1;ik<ile_x;ik++){
-				x = x_pom + ik*x_wsp_12;
-				y = y_pom + ik*y_wsp_12;
-				latitude[ile] = x;
-				longitude[ile] = y;
-				ile++;
-					}
-					x_pom = x + x_wsp_14;
-					y_pom = y + y_wsp_14;
-					kierunek = 2;
-	   }
-		else if(kierunek == 2){
+ 	for(jk = 0; jk < scanCount; jk++)
+ 	{
+		if(direction == directions.FromStartLine)
+		{
 			x = x_pom;
 			y = y_pom;
 			latitude[ile] = x;
 			longitude[ile] = y;
 			ile++;
-			for(ik=1;ik<ile_x;ik++){
-				x = x_pom - ik*x_wsp_12;
-				y = y_pom - ik*y_wsp_12;
+			
+			for(ik = 1; ik < ile_x; ik++)
+			{
+				x = x_pom + ik * x_wsp_12;
+				y = y_pom + ik * y_wsp_12;
 				latitude[ile] = x;
 				longitude[ile] = y;
 				ile++;
-					}
-					x_pom = x + x_wsp_14;
-					y_pom = y + y_wsp_14;
-					kierunek = 1;
+			}
+			
+			x_pom = x + x_wsp_14;
+			y_pom = y + y_wsp_14;
+			
+			direction = directions.ToStartLine;
+	   }
+		else if(direction == directions.ToStartLine)
+		{
+			x = x_pom;
+			y = y_pom;
+			latitude[ile] = x;
+			longitude[ile] = y;
+			ile++;
+			
+			for(ik = 1; ik < ile_x; ik++)
+			{
+				x = x_pom - ik * x_wsp_12;
+				y = y_pom - ik * y_wsp_12;
+				latitude[ile] = x;
+				longitude[ile] = y;
+				ile++;
+			}
+			
+			x_pom = x + x_wsp_14;
+			y_pom = y + y_wsp_14;
+			
+			direction = directions.FromStartLine;
 	   }
 	}
 	
