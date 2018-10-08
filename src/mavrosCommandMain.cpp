@@ -3,6 +3,8 @@
 #include <fstream>
 #include <math.h>
 #include "mavrosCommand.hpp"
+#include <nlohmann/json.hpp>
+
 using namespace std;
 
 double latitude[15];
@@ -12,7 +14,7 @@ float missionAltitude = 5;
 int yawMapping;
 #define PI 3.14159265
 
-
+using json = nlohmann::json;
 
 const uint8_t WAIT_FOR_START = 0;
 const uint8_t TAKEOFF_HOME = 1;
@@ -48,7 +50,7 @@ void takeOffHome(mavrosCommand command);
 void nextPoint(mavrosCommand command);
 void flyHome(mavrosCommand command);
 void landHome(mavrosCommand command);
-bool getCordinates();
+bool getCordinates(mavrosCommand command);
 
 int main(int argc, char* argv[]){
 
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]){
 	
 	
 
-	if(getCordinates() == false){
+	if(getCordinates(command) == false){
 		cout<<"FILE mission.txt IS DAMAGED!"<<endl;
 		return 0;
 	}
@@ -213,10 +215,10 @@ void landHome(mavrosCommand command){
 	}
 }
 
-bool getCordinates(){
-	ifstream theFile("mission.txt");
-	
-	double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0, x4 = 0.0, y4 = 0.0;
+bool getCordinates(mavrosCommand command){
+	ifstream theFile("/home/w0rt4/drony/catkin_ws/src/mission1/mission.json");
+	json missionSettings = json::parse(theFile);
+	theFile.close();
 	
 	char comma;
 	
@@ -227,8 +229,17 @@ bool getCordinates(){
  	double x, x_wsp_14, x_wsp_12, x_pom;
  	double y, y_wsp_14, y_wsp_12, y_pom;
  	
-	theFile >> missionAltitude >> ile_y >> pictureFrequency >> x1 >> comma >> y1 >> x2 >> comma >> y2 >> x4 >> comma >> y4;
-	theFile.close();
+ 	missionAltitude = missionSettings["mission"]["altitude"];
+ 	pictureFrequency = missionSettings["mission"]["photosFrequency"];
+ 	double leftDownLongitude = missionSettings["mission"]["leftDown"]["longitude"];
+ 	double leftDownLatitude = missionSettings["mission"]["leftDown"]["latitude"];
+ 	double leftUpLongitude = missionSettings["mission"]["leftUp"]["longitude"];
+ 	double leftUpLatitude = missionSettings["mission"]["leftUp"]["latitude"];
+ 	double rightDownLongitude = missionSettings["mission"]["rightDown"]["longitude"];
+ 	double rightDownLatitude = missionSettings["mission"]["rightDown"]["latitude"];
+ 	ile_y = ceil(command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / 19);
+ 	
+ 	double distanceBetweenSingleScan = command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / ile_y;
 	
 	pictureFrequency = pictureFrequency * 20;
 	

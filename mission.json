@@ -2,17 +2,17 @@
 	"mission": {
 		"altitude": 30,
 		"photosFrequency": 2,
-		"firstPoint": [{
-			"x": 53.117720,
-			"y": 23.147192
-		}],
-		"secondPoint": [{
-			"x": 53.118805,
-			"y": 23.146585
-		}],
-		"thirdPoint": [{
-			"x": 53.117935,
-			"y": 23.148224
-		}]
+		"leftDown": {
+			"longitude": 53.117720,
+			"latitude": 23.147192
+		},
+		"leftUp": {
+			"longitude": 53.118805,
+			"latitude": 23.146585
+		},
+		"rightDown": {
+			"longitude": 53.117935,
+			"latitude": 23.148224
+		}
 	}
 }
