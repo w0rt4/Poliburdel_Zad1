@@ -4,11 +4,13 @@
 #include <math.h>
 #include "mavrosCommand.hpp"
 #include <nlohmann/json.hpp>
+#include <GeographicLib/UTMUPS.hpp>
 
 using namespace std;
+using namespace GeographicLib;
 
-double latitude[15];
-double longitude[15];
+double latitude[25];
+double longitude[25];
 int pointsCount = 0;
 float missionAltitude = 5;
 int yawMapping;
@@ -229,6 +231,9 @@ bool getCordinates(mavrosCommand command){
 	int ik,jk;
  	double x, x_wsp_14, x_wsp_12, x_pom;
  	double y, y_wsp_14, y_wsp_12, y_pom;
+ 	double easting, northing, longitudeShift, latitudeShift;
+ 	int zone;
+ 	bool northp;
  	
  	missionAltitude = missionSettings["mission"]["altitude"];
  	pictureFrequency = missionSettings["mission"]["photosFrequency"];
@@ -306,6 +311,44 @@ bool getCordinates(mavrosCommand command){
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
+			// Zakrety test
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 9.2 * sin(command.toRad(70));
+			latitudeShift = 9.2 * cos(command.toRad(70));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 5 * sin(command.toRad(54));
+			latitudeShift = 5 * cos(command.toRad(54));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 5 * sin(command.toRad(4));
+			latitudeShift = 5 * cos(command.toRad(4));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			//
+			
 			direction = directions(ToStartLine);
 	   }
 		else if(direction == directions(ToStartLine))
@@ -327,6 +370,44 @@ bool getCordinates(mavrosCommand command){
 			
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
+			
+			// Zakrety test
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 9.2 * sin(command.toRad(340));
+			latitudeShift = 9.2 * cos(command.toRad(340));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 5 * sin(command.toRad(360));
+			latitudeShift = 5 * cos(command.toRad(360));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			
+			UTMUPS::Forward(x, y, zone, northp, easting, northing);
+			longitudeShift = 5 * sin(command.toRad(30));
+			latitudeShift = 5 * cos(command.toRad(30));
+			cout<<longitudeShift<<" "<<latitudeShift<<endl;
+			northing += longitudeShift;
+			easting += latitudeShift;
+			
+			UTMUPS::Reverse(zone, northp, easting, northing, x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			//
 			
 			direction = directions(FromStartLine);
 	   }
