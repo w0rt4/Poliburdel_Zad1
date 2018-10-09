@@ -9,7 +9,7 @@ using namespace std;
 
 double latitude[15];
 double longitude[15];
-int ile=0;
+int pointsCount = 0;
 float missionAltitude = 5;
 int yawMapping;
 #define PI 3.14159265
@@ -140,8 +140,8 @@ void waitForStart(mavrosCommand command){
 	homeLongitude = command.getGlobalPositionLongitude();
 	homeAltitude = command.getGlobalPositionAltitude();
 	
-	latitude[ile] = homeLatitude;
-	longitude[ile] = homeLongitude;
+	latitude[pointsCount] = homeLatitude;
+	longitude[pointsCount] = homeLongitude;
 	
 	dronAltitude = missionAltitude;
 	command.guided();
@@ -186,7 +186,7 @@ void nextPoint(mavrosCommand command){
 		
 		i++;
 		
-		if(i >= ile + 1){ //IS IN HOME POSITION?
+		if(i >= pointsCount + 1){ //IS IN HOME POSITION?
 			currentState = LAND_HOME;
 			dronAltitude = 5;
 			command.flyTo(homeLatitude, homeLongitude, dronAltitude);
@@ -225,14 +225,10 @@ bool getCordinates(mavrosCommand command){
 	ifstream theFile("/home/w0rt4/drony/catkin_ws/src/mission1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
-
-	int ile_x = 2; //longer side
 	
 	int ik,jk;
  	double x, x_wsp_14, x_wsp_12, x_pom;
  	double y, y_wsp_14, y_wsp_12, y_pom;
- 	
- 	int direction = directions.FromStartLine;
  	
  	missionAltitude = missionSettings["mission"]["altitude"];
  	pictureFrequency = missionSettings["mission"]["photosFrequency"];
@@ -244,92 +240,95 @@ bool getCordinates(mavrosCommand command){
  	double rightDownLongitude = missionSettings["mission"]["rightDown"]["longitude"];
  	double rightDownLatitude = missionSettings["mission"]["rightDown"]["latitude"];
  	
- 	int scanCount = ceil(command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / 19);
- 	double distanceBetweenSingleScan = command.distanceBetweenCordinates(leftDownLongitude, leftDownLatitude, rightDownLongitude, rightDownLatitude) / scanCount;
+ 	int direction = directions(FromStartLine);
+ 	
+ 	int pointsOnSingleScan = 2;
+ 	int scanCount = ceil(command.distanceBetweenCordinates(leftDownLatitude, leftDownLongitude, rightDownLatitude, rightDownLongitude) / 19);
+ 	double distanceBetweenSingleScan = command.distanceBetweenCordinates(leftDownLatitude, leftDownLongitude, rightDownLatitude, rightDownLongitude) / scanCount;
 	
-	if(missionAltitude == 0 || leftDownLongitude == 0 || leftUpLongitude == 0 || rightDownLongitude == 0 || leftDownLatitude == 0 || leftUpLatitude == 0 || rightDownLatitude == 0)
+	if(missionAltitude == 0 || leftDownLatitude == 0 || leftUpLatitude == 0 || rightDownLatitude == 0 || leftDownLongitude == 0 || leftUpLongitude == 0 || rightDownLongitude == 0)
 	{
 		return false;
 	}	 
 	
 	pictureFrequency = pictureFrequency * 20;
-	yawMapping = atan((leftUpLatitude - leftDownLatitude) * 0.67 / (leftUpLongitude - leftDownLongitude) * 1.11) * 180 / PI;
+	yawMapping = atan((leftUpLongitude - leftDownLongitude) * 0.67 / (leftUpLatitude - leftDownLatitude) * 1.11) * 180 / PI;
 
-	if(leftUpLatitude - leftDownLatitude >= 0 && leftUpLongitude - leftDownLongitude == 0)
+	if(leftUpLongitude - leftDownLongitude >= 0 && leftUpLatitude - leftDownLatitude == 0)
 	{
 		yawMapping = 90;
 	}
-	else if(leftUpLongitude - leftDownLongitude < 0)
+	else if(leftUpLatitude - leftDownLatitude < 0)
 	{
 		yawMapping = 180 + yawMapping;
 	}
-	else if(leftUpLatitude - leftDownLatitude < 0  && leftUpLongitude - leftDownLongitude == 0)
+	else if(leftUpLongitude - leftDownLongitude < 0  && leftUpLatitude - leftDownLatitude == 0)
 	{
 		yawMapping = 270;
 	}
-	else if(leftUpLatitude - leftDownLatitude < 0  && leftUpLongitude - leftDownLongitude > 0)
+	else if(leftUpLongitude - leftDownLongitude < 0  && leftUpLatitude - leftDownLatitude > 0)
 	{
 		yawMapping = 360 + yawMapping;
 	}
 	
 	yawMapping = yawMapping % 360;
 				
- 	x_wsp_12 = leftUpLongitude - leftDownLongitude;
-	y_wsp_12 = leftUpLatitude - leftDownLatitude;
-	x_wsp_14 = rightDownLongitude - leftDownLongitude;
-	y_wsp_14 = rightDownLatitude - leftDownLatitude;
-	x_wsp_12=x_wsp_12 / (ile_x - 1);
-	y_wsp_12=y_wsp_12 / (ile_x - 1);
-	x_wsp_14=x_wsp_14 / (scanCount - 1);
-	y_wsp_14=y_wsp_14 / (scanCount - 1);
-	x_pom = leftDownLongitude;
-	y_pom = leftDownLatitude;
+ 	x_wsp_12 = leftUpLatitude - leftDownLatitude;
+	y_wsp_12 = leftUpLongitude - leftDownLongitude;
+	x_wsp_14 = rightDownLatitude - leftDownLatitude;
+	y_wsp_14 = rightDownLongitude - leftDownLongitude;
+	x_wsp_12 = x_wsp_12 / (pointsOnSingleScan - 1);
+	y_wsp_12 = y_wsp_12 / (pointsOnSingleScan - 1);
+	x_wsp_14 = x_wsp_14 / (scanCount - 1);
+	y_wsp_14 = y_wsp_14 / (scanCount - 1);
+	x_pom = leftDownLatitude;
+	y_pom = leftDownLongitude;
  	
  	for(jk = 0; jk < scanCount; jk++)
  	{
-		if(direction == directions.FromStartLine)
+		if(direction == directions(FromStartLine))
 		{
 			x = x_pom;
 			y = y_pom;
-			latitude[ile] = x;
-			longitude[ile] = y;
-			ile++;
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
 			
-			for(ik = 1; ik < ile_x; ik++)
+			for(ik = 1; ik < pointsOnSingleScan; ik++)
 			{
 				x = x_pom + ik * x_wsp_12;
 				y = y_pom + ik * y_wsp_12;
-				latitude[ile] = x;
-				longitude[ile] = y;
-				ile++;
+				latitude[pointsCount] = x;
+				longitude[pointsCount] = y;
+				pointsCount++;
 			}
 			
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
-			direction = directions.ToStartLine;
+			direction = directions(ToStartLine);
 	   }
-		else if(direction == directions.ToStartLine)
+		else if(direction == directions(ToStartLine))
 		{
 			x = x_pom;
 			y = y_pom;
-			latitude[ile] = x;
-			longitude[ile] = y;
-			ile++;
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
 			
-			for(ik = 1; ik < ile_x; ik++)
+			for(ik = 1; ik < pointsOnSingleScan; ik++)
 			{
 				x = x_pom - ik * x_wsp_12;
 				y = y_pom - ik * y_wsp_12;
-				latitude[ile] = x;
-				longitude[ile] = y;
-				ile++;
+				latitude[pointsCount] = x;
+				longitude[pointsCount] = y;
+				pointsCount++;
 			}
 			
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
-			direction = directions.FromStartLine;
+			direction = directions(FromStartLine);
 	   }
 	}
 	
