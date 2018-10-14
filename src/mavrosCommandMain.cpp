@@ -9,8 +9,8 @@
 using namespace std;
 using namespace GeographicLib;
 
-double latitude[25];
-double longitude[25];
+double latitude[200];
+double longitude[200];
 int pointsCount = 0;
 float missionAltitude = 5;
 int yawMapping;
@@ -46,7 +46,7 @@ double pictureFrequency = 40; //40 = 1 photo per  two seconds
 int frequency = 20;
 //////////////////////////
 int loopCounter;
-int loopCounter1;
+int loopCounter1=0;
 
 int checkpointsQuantity = 11;
 double cordinatesPrecision = 0.00002;//0.000005;
@@ -71,9 +71,8 @@ int main(int argc, char* argv[]){
 	
 	
 	
-
 	if(getCordinates(command) == false){
-		cout<<"FILE mission.txt IS DAMAGED!"<<endl;
+		cout<<"FILE mission.json IS DAMAGED!"<<endl;
 		return 0;
 	}
 	/*
@@ -99,6 +98,14 @@ int main(int argc, char* argv[]){
 			//}
 			//cout<<"Compass="<<command.getCompassHeading()<<" yaw="<<yawMapping<<endl;
 		}
+		
+		/*
+		if(loopCounter1 >= pictureFrequency && command.getRCInput() > 1500){
+				command.picture_2();
+				cout<<command.getRCInput()<<endl;
+				loopCounter1 = 0;
+		}
+		*/
 		
 		loopCounter++;
 		loopCounter1++;
@@ -204,29 +211,38 @@ void nextPoint(mavrosCommand command){
 		else
 		{
 			 isMapping = false;
-			 cordinatesPrecision = 0.00005;
+			 cordinatesPrecision = 0.00008;
 		}
 		
 		command.flyTo(latitude[i], longitude[i], missionAltitude);
 	}
+	else if(command.isInPosition(command.getGlobalPositionLatitude(), command.getGlobalPositionLongitude(), latitude[i - 1], longitude[i - 1], 0.00002))
+	{
+		cout<<"RESEND COMMAND FLY TO"<<endl;
+		command.flyTo(latitude[i], longitude[i], missionAltitude);
+	}
+
 }
 
-void landHome(mavrosCommand command){
-	
+void landHome(mavrosCommand command)
+{
 	if(!precisionLanding){
 		
 		cout<<"CURRENT ALTITUDE: "<< command.getGlobalPositionAltitude() - homeAltitude<<endl;	
-		if(command.getGlobalPositionAltitude() - homeAltitude <= 5){
+		if(command.getGlobalPositionAltitude() - homeAltitude <= 5)
+		{
 			precisionLanding = true;
 			sleep(3);
 			command.land();
 		}
-		else{
+		else
+		{
 			 dronAltitude = dronAltitude - 0.1;
 			 command.flyTo(homeLatitude, homeLongitude, dronAltitude);
-		 }
+		}
 	}
-	else{
+	else
+	{
 		cout<<command.getArmed()<<endl;
 		if(!command.getArmed())currentState = END;
 	}
@@ -249,7 +265,7 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 }
 
 bool getCordinates(mavrosCommand command){
-	ifstream theFile("/home/w0rt4/drony/catkin_ws/src/mission1/mission.json");
+	ifstream theFile("/home/odroid/catkin_ws/src/mapping1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
 	

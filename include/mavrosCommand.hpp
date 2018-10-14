@@ -18,6 +18,7 @@
 #include "std_msgs/String.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "std_srvs/Empty.h"
+#include "mavros_msgs/RCIn.h"
 
 using namespace std;
 
@@ -35,6 +36,7 @@ public:
 	void takeOff(double altitude);
 	void servo(double width);
 	void picture();
+	void picture_2();
 	
 	//publishers
 	void flyTo(double latitude, double longitude, double altitude);
@@ -63,6 +65,8 @@ public:
 	double getQrPositionX();
 	double getQrPositionY();
 	
+	int getRCInput();
+	
 	//others
 	double toRad(double degree);
 	bool isInPosition(double lat_current, double long_current, double lat_destination, double long_destination, double cordinatesPrecision);
@@ -80,6 +84,7 @@ private:
 	ros::ServiceClient _clientLand;
 	ros::ServiceClient _clientServo;
 	ros::ServiceClient _clientPicture;
+	ros::ServiceClient _clientPicture_2;
 	
 	ros::Publisher _pub_mav;
 	ros::Publisher _pub_mavPositionTarget;
@@ -95,6 +100,7 @@ private:
 	void timeReferenceCb(sensor_msgs::TimeReference::ConstPtr msg);
 	void qrMessageCb(std_msgs::String::ConstPtr msg);
 	void qrPositionCb(geometry_msgs::PoseStamped::ConstPtr msg);
+	void rcInputCb(mavros_msgs::RCIn::ConstPtr msg);
 		
 	//Subscribers
 	ros::Subscriber _adsbVehicleSub;
@@ -105,6 +111,7 @@ private:
 	ros::Subscriber _timeReferenceSub;
 	ros::Subscriber _qrMessageSub;
 	ros::Subscriber _qrPositionSub;
+	ros::Subscriber _rcInSub;
 	
 	//adsb/vehicle
 	int _adsbICAO;
@@ -132,6 +139,9 @@ private:
 	
 	//qrPosition
 	double _qrPositionX, _qrPositionY;
+	
+	//RCInput
+	uint16_t _rcIn[18];
 };
 
 

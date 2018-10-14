@@ -20,6 +20,7 @@ void mavrosCommand::init(){
 	_clientLand = _nh.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
 	_clientServo = _nh.serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
 	_clientPicture = _nh.serviceClient<std_srvs::Empty>("/image_saver/save");
+	_clientPicture_2 = _nh.serviceClient<std_srvs::Empty>("/image_saver_2/save");
 	
 	_pub_mav = _nh.advertise<mavros_msgs::GlobalPositionTarget>("/mavros/setpoint_raw/global",100);
 	_pub_mavPositionTarget = _nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local",100);
@@ -33,6 +34,7 @@ void mavrosCommand::init(){
 	_timeReferenceSub = _nh.subscribe("/mavros/time_reference", 100, &mavrosCommand::timeReferenceCb, this);
 	_qrMessageSub = _nh.subscribe("/visp_auto_tracker/code_message", 100, &mavrosCommand::qrMessageCb, this);
 	_qrPositionSub = _nh.subscribe("/visp_auto_tracker/object_position", 100, &mavrosCommand::qrPositionCb, this);
+	_rcInSub = _nh.subscribe("mavros/rc/in", 100, &mavrosCommand::rcInputCb, this);
 }
 
 void mavrosCommand::qrPositionCb(geometry_msgs::PoseStamped::ConstPtr msg) {
@@ -78,6 +80,10 @@ void mavrosCommand::globalPostionRelAltitudeCb(std_msgs::Float64::ConstPtr msg){
 void mavrosCommand::timeReferenceCb(sensor_msgs::TimeReference::ConstPtr msg) {
 	_time = msg->time_ref.toSec();
 }
+
+void mavrosCommand::rcInputCb(mavros_msgs::RCIn::ConstPtr msg) {
+	_rcIn[5] = msg->channels[5];
+}
  
 void mavrosCommand::takeOff(double altitude){
 	
@@ -116,6 +122,12 @@ void mavrosCommand::picture(){
 	cout<<"PICTURE CAPTURED"<<endl;
 	//if (srv_picture.response.success)cout<<"PICTURE CAPTURED"<<endl;
 	//else cout<<"PICTURE FAIL"<<endl;
+}
+
+void mavrosCommand::picture_2(){
+	std_srvs::Empty srv_picture_2;
+	_clientPicture_2.call(srv_picture_2);
+	cout<<"PICTURE_2 CAPTURED"<<endl;
 }
 
 void mavrosCommand::servo(double width){//width 1000-2000
@@ -257,6 +269,10 @@ double mavrosCommand::getQrPositionX(){
 }
 double mavrosCommand::getQrPositionY(){
 	return _qrPositionY;
+}
+
+int mavrosCommand::getRCInput(){
+	return _rcIn[5];
 }
 
 //others

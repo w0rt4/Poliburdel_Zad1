@@ -3,16 +3,16 @@
 		"altitude": 30,
 		"photosFrequency": 2,
 		"leftDown": {
-			"latitude": 53.117720,
-			"longitude": 23.147192
+			"latitude": 53.117800,
+			"longitude": 23.147428
 		},
 		"leftUp": {
-			"latitude": 53.118805,
-			"longitude": 23.146585
+			"latitude": 53.119230,
+			"longitude": 23.146499
 		},
 		"rightDown": {
-			"latitude": 53.117935,
-			"longitude": 23.148224
+			"latitude": 53.118117,
+			"longitude": 23.148867
 		}
 	}
 }
