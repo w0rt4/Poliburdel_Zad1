@@ -5,9 +5,14 @@
 #include "mavrosCommand.hpp"
 #include <nlohmann/json.hpp>
 #include <GeographicLib/UTMUPS.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <string.h>
 
 using namespace std;
 using namespace GeographicLib;
+using namespace cv;
 
 double latitude[200];
 double longitude[200];
@@ -48,7 +53,6 @@ int frequency = 20;
 int loopCounter;
 int loopCounter1=0;
 
-int checkpointsQuantity = 11;
 double cordinatesPrecision = 0.00002;//0.000005;
 //////////////////
 
@@ -61,27 +65,34 @@ void landHome(mavrosCommand command);
 void getLatLongShift(mavrosCommand command, double length, double angle, double pointLatitude, double pointLongitude);
 bool getCordinates(mavrosCommand command);
 
+
+
+
 int main(int argc, char* argv[]){
 
-	ros::init(argc, argv, "beginner_tutorials");
+	ros::init(argc, argv, "mapping");
 	mavrosCommand command;
 	
 	ros::Rate loop_rate(frequency);
 	sleep(1);
 	
-	
-	
 	if(getCordinates(command) == false){
 		cout<<"FILE mission.json IS DAMAGED!"<<endl;
 		return 0;
 	}
-	/*
-	for(i=0; i<ile; i++){
-		cout<<fixed << setprecision(7) << latitude[i] <<", ";
-		cout<<fixed << setprecision(7) << longitude[i] <<endl;
-	}
-	*/
+
 	i=0;
+	
+	VideoCapture cap(0);	
+	
+	if (cap.isOpened() == false)  
+	{
+		cout << "Cannot open the video camera" << endl;
+
+		return -1;
+	} 
+	
+	int cntr = 0;
 	
 	while (ros::ok()) {
 		
@@ -90,13 +101,19 @@ int main(int argc, char* argv[]){
 			loopCounter = 0;
 		}
 		
+		Mat frame;
+		
+		bool bSuccess = cap.read(frame);
+		if (bSuccess == false) 
+		{
+			cout << "Video camera is disconnected" << endl;
+		}
+		
 		if(loopCounter1 >= pictureFrequency && isMapping == true){
-			//if((command.getCompassHeading() >= yawMapping - 15 && command.getCompassHeading() >= yawMapping + 15) ||
-			 //  (command.getCompassHeading() >= yawMapping - 15 + 180 && command.getCompassHeading() >= yawMapping + 15 + 180)){
-					command.picture();
-					loopCounter1 = 0;
-			//}
-			//cout<<"Compass="<<command.getCompassHeading()<<" yaw="<<yawMapping<<endl;
+			string savingName = "/home/maciej/zdj/" + to_string(++cntr) + ".jpg";
+			imwrite(savingName, frame);
+			cout << "Picture taken" << endl;
+			loopCounter1 = 0;
 		}
 		
 		/*
@@ -112,7 +129,7 @@ int main(int argc, char* argv[]){
 		ros::spinOnce();
 		loop_rate.sleep();
 	}	
-	
+	cap.release();
 	return 0;
 }
 
@@ -265,7 +282,7 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 }
 
 bool getCordinates(mavrosCommand command){
-	ifstream theFile("/home/odroid/catkin_ws/src/mapping1/mission.json");
+	ifstream theFile("/home/maciej/catkin_ws/src/Poliburdel_Zad1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
 	
