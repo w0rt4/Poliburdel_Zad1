@@ -1,4 +1,4 @@
-#include <iostream>
+ls#include <iostream>
 #include "ros/ros.h"
 #include <fstream>
 #include <math.h>
@@ -110,9 +110,22 @@ int main(int argc, char* argv[]){
 		}
 		
 		if(loopCounter1 >= pictureFrequency && isMapping == true){
-			string savingName = "/home/maciej/zdj/" + to_string(++cntr) + ".jpg";
+			string savingName = "/home/odroid/zdj/" + to_string(cntr) + ".jpg";
 			imwrite(savingName, frame);
-			cout << "Picture taken" << endl;
+			cout << "PICTURE: " << cntr << "TAKEN" << endl;
+			
+			Mat bwFrame;
+			cvtColor(frame, bwFrame, COLOR_BGR2HSV);
+			Mat lower_red_hue_range;
+			Mat upper_red_hue_range;
+			inRange(bwFrame, Scalar(0,100,100), Scalar(10,255,255) , lower_red_hue_range);
+			inRange(bwFrame, Scalar(160,100,100), Scalar(179,255,255) , upper_red_hue_range);
+			Mat red_hue_image;
+			addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
+			GaussianBlur(red_hue_image, red_hue_image, Size(9,9), 2, 2);
+			savingName = "/home/odroid/zdj2/" + to_string(cntr) + ".jpg";
+			imwrite(savingName, red_hue_image);
+			cntr++;
 			loopCounter1 = 0;
 		}
 		
@@ -282,7 +295,7 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 }
 
 bool getCordinates(mavrosCommand command){
-	ifstream theFile("/home/maciej/catkin_ws/src/Poliburdel_Zad1/mission.json");
+	ifstream theFile("/home/odroid/catkin_ws/src/Poliburdel_Zad1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
 	
