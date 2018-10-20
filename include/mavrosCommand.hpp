@@ -8,19 +8,21 @@
 #include "mavros_msgs/CommandTOL.h"
 #include "mavros_msgs/CommandLong.h"
 #include "mavros_msgs/SetMode.h"
-#include <iostream>
 #include "mavros_msgs/ADSBVehicle.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "std_msgs/Float64.h"
 #include "sensor_msgs/TimeReference.h"
 #include "mavros_msgs/State.h"
-#include <string>
 #include "std_msgs/String.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "std_srvs/Empty.h"
 #include "mavros_msgs/RCIn.h"
 
+#include <iostream>
+#include <string.h>
+#include <pwd.h>
+
 using namespace std;
+
+string get_username();
 
 class mavrosCommand {
 public:
@@ -35,8 +37,6 @@ public:
 	void arm();
 	void takeOff(double altitude);
 	void servo(double width);
-	void picture();
-	void picture_2();
 	
 	//publishers
 	void flyTo(double latitude, double longitude, double altitude);
@@ -61,9 +61,6 @@ public:
 	bool getArmed();
 	bool getGuided();
 	string getState();
-	string getQrValue();
-	double getQrPositionX();
-	double getQrPositionY();
 	
 	int getRCInput();
 	
@@ -83,8 +80,6 @@ private:
 	ros::ServiceClient _clientGuided;
 	ros::ServiceClient _clientLand;
 	ros::ServiceClient _clientServo;
-	ros::ServiceClient _clientPicture;
-	ros::ServiceClient _clientPicture_2;
 	
 	ros::Publisher _pub_mav;
 	ros::Publisher _pub_mavPositionTarget;
@@ -98,8 +93,6 @@ private:
 	void stateCb(mavros_msgs::State::ConstPtr msg);
 	void globalPostionRelAltitudeCb(std_msgs::Float64::ConstPtr msg);
 	void timeReferenceCb(sensor_msgs::TimeReference::ConstPtr msg);
-	void qrMessageCb(std_msgs::String::ConstPtr msg);
-	void qrPositionCb(geometry_msgs::PoseStamped::ConstPtr msg);
 	void rcInputCb(mavros_msgs::RCIn::ConstPtr msg);
 		
 	//Subscribers
@@ -109,8 +102,6 @@ private:
 	ros::Subscriber _stateSub;
 	ros::Subscriber _globalPositionRelAltitudeSub;
 	ros::Subscriber _timeReferenceSub;
-	ros::Subscriber _qrMessageSub;
-	ros::Subscriber _qrPositionSub;
 	ros::Subscriber _rcInSub;
 	
 	//adsb/vehicle
@@ -133,12 +124,6 @@ private:
 	
 	//timeReference
 	time_t _time;
-	
-	//qrMessage
-	string _qrMessage;
-	
-	//qrPosition
-	double _qrPositionX, _qrPositionY;
 	
 	//RCInput
 	uint16_t _rcIn[18];

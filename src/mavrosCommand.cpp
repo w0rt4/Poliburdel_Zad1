@@ -4,6 +4,14 @@
 using namespace std;
 #define PI 3.14159265
 
+string get_username() {
+    struct passwd *pwd = getpwuid(getuid());
+    if (pwd)
+        return pwd->pw_name;
+    else
+        return "odroid";
+}
+
 mavrosCommand::mavrosCommand(){
 	
 	_nh = ros::NodeHandle();
@@ -19,32 +27,20 @@ void mavrosCommand::init(){
 	_clientGuided = _nh.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 	_clientLand = _nh.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
 	_clientServo = _nh.serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
-	_clientPicture = _nh.serviceClient<std_srvs::Empty>("/image_saver/save");
-	_clientPicture_2 = _nh.serviceClient<std_srvs::Empty>("/image_saver_2/save");
 	
 	_pub_mav = _nh.advertise<mavros_msgs::GlobalPositionTarget>("/mavros/setpoint_raw/global",100);
 	_pub_mavPositionTarget = _nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local",100);
 	
-	/////
+
 	_compassHeadingSub = _nh.subscribe("/mavros/global_position/compass_hdg", 100, &mavrosCommand::compassHeadingCb, this);
 	_adsbVehicleSub = _nh.subscribe("/mavros/adsb/vehicle", 100, &mavrosCommand::adsbVehicleCb, this);
 	_globalPositionGlobalSub = _nh.subscribe("/mavros/global_position/global", 100, &mavrosCommand::globalPositionGlobalCb, this);
 	_stateSub = _nh.subscribe("/mavros/state", 100, &mavrosCommand::stateCb, this);
 	_globalPositionRelAltitudeSub = _nh.subscribe("/mavros/global_position/rel_alt", 100, &mavrosCommand::globalPostionRelAltitudeCb, this);
 	_timeReferenceSub = _nh.subscribe("/mavros/time_reference", 100, &mavrosCommand::timeReferenceCb, this);
-	_qrMessageSub = _nh.subscribe("/visp_auto_tracker/code_message", 100, &mavrosCommand::qrMessageCb, this);
-	_qrPositionSub = _nh.subscribe("/visp_auto_tracker/object_position", 100, &mavrosCommand::qrPositionCb, this);
 	_rcInSub = _nh.subscribe("mavros/rc/in", 100, &mavrosCommand::rcInputCb, this);
 }
 
-void mavrosCommand::qrPositionCb(geometry_msgs::PoseStamped::ConstPtr msg) {
-	_qrPositionX = msg->pose.position.x;
-	_qrPositionY = msg->pose.position.y;
-}
-
-void mavrosCommand::qrMessageCb(std_msgs::String::ConstPtr msg) {
-	_qrMessage = msg->data;
-}
 
 void mavrosCommand::adsbVehicleCb(mavros_msgs::ADSBVehicle::ConstPtr msg) {
 	
@@ -53,7 +49,6 @@ void mavrosCommand::adsbVehicleCb(mavros_msgs::ADSBVehicle::ConstPtr msg) {
 	_adsbVelocity = msg->hor_velocity;
 	_adsbLatitude = msg->latitude;
 	_adsbLongitude = msg->longitude;
-
 }
 
 void mavrosCommand::globalPositionGlobalCb(sensor_msgs::NavSatFix::ConstPtr msg){
@@ -116,19 +111,6 @@ void mavrosCommand::land(){
 	
 }
 
-void mavrosCommand::picture(){
-	std_srvs::Empty srv_picture;
-	_clientPicture.call(srv_picture);
-	cout<<"PICTURE CAPTURED"<<endl;
-	//if (srv_picture.response.success)cout<<"PICTURE CAPTURED"<<endl;
-	//else cout<<"PICTURE FAIL"<<endl;
-}
-
-void mavrosCommand::picture_2(){
-	std_srvs::Empty srv_picture_2;
-	_clientPicture_2.call(srv_picture_2);
-	cout<<"PICTURE_2 CAPTURED"<<endl;
-}
 
 void mavrosCommand::servo(double width){//width 1000-2000
 	
@@ -172,7 +154,6 @@ void mavrosCommand::arm(){
 	}
 	
 }
-
 
 
 void mavrosCommand::flyTo(double latitude, double longitude, double altitude){
@@ -261,16 +242,6 @@ bool mavrosCommand::getGuided(){
 string mavrosCommand::getState(){
 	return _state;
 }
-string mavrosCommand::getQrValue(){
-	return _qrMessage;
-}
-double mavrosCommand::getQrPositionX(){
-	return _qrPositionX;
-}
-double mavrosCommand::getQrPositionY(){
-	return _qrPositionY;
-}
-
 int mavrosCommand::getRCInput(){
 	return _rcIn[5];
 }

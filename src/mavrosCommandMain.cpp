@@ -1,4 +1,4 @@
-ls#include <iostream>
+#include <iostream>
 #include "ros/ros.h"
 #include <fstream>
 #include <math.h>
@@ -8,7 +8,7 @@ ls#include <iostream>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <string.h>
+
 
 using namespace std;
 using namespace GeographicLib;
@@ -67,7 +67,6 @@ bool getCordinates(mavrosCommand command);
 
 
 
-
 int main(int argc, char* argv[]){
 
 	ros::init(argc, argv, "mapping");
@@ -76,23 +75,25 @@ int main(int argc, char* argv[]){
 	ros::Rate loop_rate(frequency);
 	sleep(1);
 	
-	if(getCordinates(command) == false){
+	if(getCordinates(command) == false)
+	{
 		cout<<"FILE mission.json IS DAMAGED!"<<endl;
 		return 0;
 	}
 
 	i=0;
 	
-	VideoCapture cap(0);	
+	VideoCapture cap(0);
 	
 	if (cap.isOpened() == false)  
 	{
 		cout << "Cannot open the video camera" << endl;
-
 		return -1;
 	} 
 	
 	int cntr = 0;
+	
+	string name = get_username();
 	
 	while (ros::ok()) {
 		
@@ -110,9 +111,9 @@ int main(int argc, char* argv[]){
 		}
 		
 		if(loopCounter1 >= pictureFrequency && isMapping == true){
-			string savingName = "/home/odroid/zdj/" + to_string(cntr) + ".jpg";
+			string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
 			imwrite(savingName, frame);
-			cout << "PICTURE: " << cntr << "TAKEN" << endl;
+			cout << "PICTURE: " << cntr << " TAKEN" << endl;
 			
 			Mat bwFrame;
 			cvtColor(frame, bwFrame, COLOR_BGR2HSV);
@@ -123,19 +124,12 @@ int main(int argc, char* argv[]){
 			Mat red_hue_image;
 			addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
 			GaussianBlur(red_hue_image, red_hue_image, Size(9,9), 2, 2);
-			savingName = "/home/odroid/zdj2/" + to_string(cntr) + ".jpg";
+			savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".jpg";
 			imwrite(savingName, red_hue_image);
 			cntr++;
 			loopCounter1 = 0;
 		}
 		
-		/*
-		if(loopCounter1 >= pictureFrequency && command.getRCInput() > 1500){
-				command.picture_2();
-				cout<<command.getRCInput()<<endl;
-				loopCounter1 = 0;
-		}
-		*/
 		
 		loopCounter++;
 		loopCounter1++;
@@ -295,7 +289,10 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 }
 
 bool getCordinates(mavrosCommand command){
-	ifstream theFile("/home/odroid/catkin_ws/src/Poliburdel_Zad1/mission.json");
+
+	string name = get_username();
+	
+	ifstream theFile("/home/" + name + "/catkin_ws/src/Poliburdel_Zad1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
 	
