@@ -5,14 +5,11 @@
 #include "mavrosCommand.hpp"
 #include <nlohmann/json.hpp>
 #include <GeographicLib/UTMUPS.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-
 
 using namespace std;
 using namespace GeographicLib;
 using namespace cv;
+using namespace boost;
 
 double latitude[200];
 double longitude[200];
@@ -84,6 +81,9 @@ int main(int argc, char* argv[]){
 	i=0;
 	
 	VideoCapture cap(0);
+	cap.set(CV_CAP_PROP_FRAME_WIDTH,1920);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
+	
 	
 	if (cap.isOpened() == false)  
 	{
@@ -92,8 +92,7 @@ int main(int argc, char* argv[]){
 	} 
 	
 	int cntr = 0;
-	
-	string name = get_username();
+	Mat frame;
 	
 	while (ros::ok()) {
 		
@@ -102,30 +101,19 @@ int main(int argc, char* argv[]){
 			loopCounter = 0;
 		}
 		
-		Mat frame;
-		
-		bool bSuccess = cap.read(frame);
-		if (bSuccess == false) 
-		{
-			cout << "Video camera is disconnected" << endl;
-		}
 		
 		if(loopCounter1 >= pictureFrequency && isMapping == true){
-			string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
-			imwrite(savingName, frame);
-			cout << "PICTURE: " << cntr << " TAKEN" << endl;
 			
-			Mat bwFrame;
-			cvtColor(frame, bwFrame, COLOR_BGR2HSV);
-			Mat lower_red_hue_range;
-			Mat upper_red_hue_range;
-			inRange(bwFrame, Scalar(0,100,100), Scalar(10,255,255) , lower_red_hue_range);
-			inRange(bwFrame, Scalar(160,100,100), Scalar(179,255,255) , upper_red_hue_range);
-			Mat red_hue_image;
-			addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
-			GaussianBlur(red_hue_image, red_hue_image, Size(9,9), 2, 2);
-			savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".jpg";
-			imwrite(savingName, red_hue_image);
+			cap.read(frame);
+			
+			thread save = thread(savePicture, frame, cntr);
+			save.detach();
+			
+			Mat copyFrame = frame;
+			
+			thread bw_save = thread(bwPicture, copyFrame, cntr);
+			bw_save.detach();
+			
 			cntr++;
 			loopCounter1 = 0;
 		}

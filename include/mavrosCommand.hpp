@@ -19,10 +19,17 @@
 #include <iostream>
 #include <string.h>
 #include <pwd.h>
+#include <boost/thread.hpp>
+
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 
 string get_username();
+void savePicture(cv::Mat frame, int cntr);
+void bwPicture(cv::Mat in_frame, int cntr);
 
 class mavrosCommand {
 public:
@@ -69,6 +76,7 @@ public:
 	bool isInPosition(double lat_current, double long_current, double lat_destination, double long_destination, double cordinatesPrecision);
 	double distanceBetweenCordinates(double lat1, double long1, double lat2, double long2);
 	void initSubscribers();
+	
 	
 private:
 	void init();

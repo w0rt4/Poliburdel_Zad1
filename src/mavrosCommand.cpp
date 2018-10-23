@@ -2,6 +2,7 @@
 #include "mavrosCommand.hpp"
 
 using namespace std;
+using namespace cv;
 #define PI 3.14159265
 
 string get_username() {
@@ -11,6 +12,39 @@ string get_username() {
     else
         return "odroid";
 }
+
+void savePicture(Mat in_frame, int cntr)
+{
+	string name = get_username();
+	string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
+	imwrite(savingName, in_frame);
+	cout << "PICTURE: " << cntr << " SAVED" << endl;	
+}
+
+void bwPicture(Mat in_frame, int cntr)
+{
+	Mat lower_red_hue_range, upper_red_hue_range, red_hue_image, hsv_image, image_open;
+
+	string name = get_username();
+	cvtColor(in_frame, hsv_image, COLOR_BGR2HSV);
+
+	inRange(hsv_image, Scalar(0,100,100), Scalar(5,230,230) , lower_red_hue_range);
+	inRange(hsv_image, Scalar(165,100,100), Scalar(179,230,230) , upper_red_hue_range);
+
+	addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
+	GaussianBlur(red_hue_image, red_hue_image, Size(9,9), 2, 2);
+	
+	
+	int morph_size = 1;
+    Mat element = getStructuringElement( MORPH_RECT, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+    morphologyEx(red_hue_image, image_open, MORPH_OPEN, element, Point(-1,-1), 3 ); 
+    
+    
+	string savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".jpg";
+	imwrite(savingName, image_open);
+	cout << "BW PICTURE: " << cntr << " SAVED" << endl;
+}
+
 
 mavrosCommand::mavrosCommand(){
 	
@@ -284,3 +318,5 @@ void mavrosCommand::initSubscribers(){
 	getCompassHeading();
 	getState();
 }
+
+
