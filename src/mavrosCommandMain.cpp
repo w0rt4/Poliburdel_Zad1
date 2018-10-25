@@ -101,7 +101,6 @@ int main(int argc, char* argv[]){
 			loopCounter = 0;
 		}
 		
-		
 		if(loopCounter1 >= pictureFrequency && isMapping == true){
 			
 			cap.read(frame);

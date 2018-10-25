@@ -19,7 +19,8 @@
 #include <iostream>
 #include <string.h>
 #include <pwd.h>
-#include <boost/thread.hpp>
+#include <thread>
+#include <vector>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>

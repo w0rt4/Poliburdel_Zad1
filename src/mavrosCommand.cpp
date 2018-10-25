@@ -28,21 +28,33 @@ void bwPicture(Mat in_frame, int cntr)
 	string name = get_username();
 	cvtColor(in_frame, hsv_image, COLOR_BGR2HSV);
 
-	inRange(hsv_image, Scalar(0,100,100), Scalar(5,230,230) , lower_red_hue_range);
-	inRange(hsv_image, Scalar(165,100,100), Scalar(179,230,230) , upper_red_hue_range);
+	inRange(hsv_image, Scalar(0,150,80), Scalar(10,255,170) , lower_red_hue_range);
+	inRange(hsv_image, Scalar(160,150,80), Scalar(179,255,170) , upper_red_hue_range);
 
 	addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
 	GaussianBlur(red_hue_image, red_hue_image, Size(9,9), 2, 2);
 	
-	
-	int morph_size = 1;
+	int morph_size = 2;
     Mat element = getStructuringElement( MORPH_RECT, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
     morphologyEx(red_hue_image, image_open, MORPH_OPEN, element, Point(-1,-1), 3 ); 
     
+    vector<Vec3f> circles;
+    
+    HoughCircles( image_open, circles, CV_HOUGH_GRADIENT,3.2,image_open.rows/4,90, 50,12, 22 );
+		
+	cvtColor(image_open, image_open, COLOR_GRAY2BGR);
+    
+    for( size_t i = 0; i < circles.size(); i++ )
+	{
+		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		int radius = cvRound(circles[i][2]);
+		circle( image_open, center,3, Scalar(0,0,255), -1, 8, 0 );
+		circle( image_open, center, radius, Scalar(0,0,255),5, 8, 0 );
+		cout << "Circle " << i << " center: " << center << " radius: " << radius << endl;
+	}
     
 	string savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".jpg";
 	imwrite(savingName, image_open);
-	cout << "BW PICTURE: " << cntr << " SAVED" << endl;
 }
 
 
