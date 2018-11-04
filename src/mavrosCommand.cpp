@@ -13,8 +13,13 @@ string get_username() {
         return "odroid";
 }
 
-void savePicture(Mat in_frame, int cntr)
-{
+void savePicture(Mat in_frame, int cntr, int iterator)
+{	
+	iterator--;
+	if (iterator % 10 != 0)
+	{	
+		rotate(in_frame, in_frame, ROTATE_180);
+	}
 	string name = get_username();
 	string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
 	imwrite(savingName, in_frame);

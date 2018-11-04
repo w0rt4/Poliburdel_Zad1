@@ -29,7 +29,7 @@
 using namespace std;
 
 string get_username();
-void savePicture(cv::Mat frame, int cntr);
+void savePicture(cv::Mat frame, int cntr, int iterator);
 void bwPicture(cv::Mat in_frame, int cntr);
 
 class mavrosCommand {

@@ -105,7 +105,7 @@ int main(int argc, char* argv[]){
 			
 			cap.read(frame);
 			
-			thread save = thread(savePicture, frame, cntr);
+			thread save = thread(savePicture, frame, cntr, i);
 			save.detach();
 			
 			Mat copyFrame = frame;
