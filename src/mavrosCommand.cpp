@@ -227,21 +227,17 @@ void mavrosCommand::flyTo(double latitude, double longitude, double altitude){
 	_pub_mav.publish(cmd_pos_glo);
 }
 
-void mavrosCommand::slowDown(double counterForce){
+void mavrosCommand::flyToLocal(double forward,double right, double up, float yaw ){
 	
-	cout<<"SLOWING DOWN"<<endl;
+	double yaw_rad = toRad(yaw) + PI/2;
 	cmd_pos_target.header.frame_id ="SET_POSITION_TARGET_LOCAL_NED";
 	cmd_pos_target.coordinate_frame = 9;
-	cmd_pos_target.type_mask = 4039;
-	cmd_pos_target.velocity.x = 0.0;
-	cmd_pos_target.velocity.y = -counterForce;
-	cmd_pos_target.velocity.z = 0.0;
-	cmd_pos_target.acceleration_or_force.x = 0.0;
-	cmd_pos_target.acceleration_or_force.y = 0.0;
-	cmd_pos_target.acceleration_or_force.z = 0.0;
-	cmd_pos_target.yaw = 0.0;
-	cmd_pos_target.yaw_rate = 0.0;
-	
+	cmd_pos_target.type_mask = 3064;
+	cmd_pos_target.position.x = right;
+	cmd_pos_target.position.y = forward;
+	cmd_pos_target.position.z = up;
+	cmd_pos_target.yaw = yaw_rad;
+
 	_pub_mavPositionTarget.publish(cmd_pos_target);
 }
 
