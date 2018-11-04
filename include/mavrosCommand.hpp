@@ -76,6 +76,7 @@ public:
 	double toRad(double degree);
 	bool isInPosition(double lat_current, double long_current, double lat_destination, double long_destination, double cordinatesPrecision);
 	double distanceBetweenCordinates(double lat1, double long1, double lat2, double long2);
+	double getBearingBetweenCoordinates(double lat1, double long1, double lat2, double long2);
 	void initSubscribers();
 	
 	

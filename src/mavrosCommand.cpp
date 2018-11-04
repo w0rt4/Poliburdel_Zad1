@@ -321,6 +321,17 @@ double mavrosCommand::distanceBetweenCordinates(double lat1, double long1, doubl
     return dist;
 }
 
+double mavrosCommand::getBearingBetweenCoordinates(double lat1, double long1, double lat2, double long2)
+{
+    double x,y;
+    x = cos(toRad(lat2)) * sin(toRad(abs(long2 - long1)));
+    cout<< "X "<<x<<endl;
+    y = cos(toRad(lat1)) * sin(toRad(lat2)) - sin(toRad(lat1)) * cos(toRad(lat2)) * cos(toRad(abs(long2 - long1)));
+    cout<< "Y "<<y<<endl;
+ 
+    return atan2(x, y) / PI * 180;
+}
+
 void mavrosCommand::initSubscribers(){
 	getTime();
 	getGlobalPositionLatitude();

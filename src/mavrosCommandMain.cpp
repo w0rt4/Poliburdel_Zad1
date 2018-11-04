@@ -366,6 +366,8 @@ bool getCordinates(mavrosCommand command){
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
+			cout << command.getBearingBetweenCoordinates(x, y, x_pom, y_pom)<<endl;
+			
 			// Zakrety test
 			getLatLongShift(command, 9.2, 70, &x, &y);
 			latitude[pointsCount] = x;
