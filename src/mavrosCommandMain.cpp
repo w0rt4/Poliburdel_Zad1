@@ -90,7 +90,7 @@ int main(int argc, char* argv[]){
 		cout << "Cannot open the video camera" << endl;
 		return -1;
 	} 
-	
+
 	int cntr = 0;
 	Mat frame;
 	
@@ -116,7 +116,6 @@ int main(int argc, char* argv[]){
 			cntr++;
 			loopCounter1 = 0;
 		}
-		
 		
 		loopCounter++;
 		loopCounter1++;
@@ -279,14 +278,14 @@ bool getCordinates(mavrosCommand command){
 
 	string name = get_username();
 	
-	ifstream theFile("/home/" + name + "/catkin_ws/src/Poliburdel_Zad1/mission.json");
+	ifstream theFile("/home/w0rt4/drony/catkin_ws/src/Poliburdel_Zad1/mission.json");
 	json missionSettings = json::parse(theFile);
 	theFile.close();
 	
 	int ik,jk;
  	double x, x_wsp_14, x_wsp_12, x_pom;
  	double y, y_wsp_14, y_wsp_12, y_pom;
- 	double easting, northing, longitudeShift, latitudeShift;
+ 	double easting, northing, longitudeShift, latitudeShift, bearing;
  	int zone;
  	bool northp;
  	
@@ -366,20 +365,21 @@ bool getCordinates(mavrosCommand command){
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
-			cout << command.getBearingBetweenCoordinates(x, y, x_pom, y_pom)<<endl;
+			bearing = command.getBearingBetweenCoordinates(latitude[pointsCount - 2], longitude[pointsCount - 2], x, y);
+			cout << bearing << endl;
 			
 			// Zakrety test
-			getLatLongShift(command, 9.2, 70, &x, &y);
+			getLatLongShift(command, 9.2, fmod((bearing + 100  + 360), 360), &x, &y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
 			
-			getLatLongShift(command, 5.4, 54, &x, &y);
+			getLatLongShift(command, 5.4, fmod((bearing + 44 + 360), 360), &x, &y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
 			
-			getLatLongShift(command, 5, 4, &x, &y);
+			getLatLongShift(command, 5, fmod((bearing + 10 + 360), 360), &x, &y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
@@ -407,20 +407,23 @@ bool getCordinates(mavrosCommand command){
 			x_pom = x + x_wsp_14;
 			y_pom = y + y_wsp_14;
 			
+			bearing = command.getBearingBetweenCoordinates(latitude[pointsCount - 2], longitude[pointsCount - 2], x, y);
+			cout << bearing << endl;
+			
 			if(jk < scanCount - 1) 
 			{
 				// Zakrety test
-				getLatLongShift(command, 9.2, 340, &x, &y);
+				getLatLongShift(command, 9.2, fmod((bearing + 180 + 360), 360), &x, &y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5, 360, &x, &y);
+				getLatLongShift(command, 5, fmod((bearing + 220 + 360), 360), &x, &y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5, 30, &x, &y);
+				getLatLongShift(command, 5, fmod((bearing + 240 + 360), 360), &x, &y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
