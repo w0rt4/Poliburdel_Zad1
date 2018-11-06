@@ -13,8 +13,13 @@ string get_username() {
         return "odroid";
 }
 
-void savePicture(Mat in_frame, int cntr)
-{
+void savePicture(Mat in_frame, int cntr, int iterator)
+{	
+	iterator--;
+	if (iterator % 10 != 0)
+	{	
+		rotate(in_frame, in_frame, ROTATE_180);
+	}
 	string name = get_username();
 	string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
 	imwrite(savingName, in_frame);
@@ -222,21 +227,17 @@ void mavrosCommand::flyTo(double latitude, double longitude, double altitude){
 	_pub_mav.publish(cmd_pos_glo);
 }
 
-void mavrosCommand::slowDown(double counterForce){
+void mavrosCommand::flyToLocal(double forward,double right, double up, float yaw ){
 	
-	cout<<"SLOWING DOWN"<<endl;
+	double yaw_rad = toRad(yaw) + PI/2;
 	cmd_pos_target.header.frame_id ="SET_POSITION_TARGET_LOCAL_NED";
 	cmd_pos_target.coordinate_frame = 9;
-	cmd_pos_target.type_mask = 4039;
-	cmd_pos_target.velocity.x = 0.0;
-	cmd_pos_target.velocity.y = -counterForce;
-	cmd_pos_target.velocity.z = 0.0;
-	cmd_pos_target.acceleration_or_force.x = 0.0;
-	cmd_pos_target.acceleration_or_force.y = 0.0;
-	cmd_pos_target.acceleration_or_force.z = 0.0;
-	cmd_pos_target.yaw = 0.0;
-	cmd_pos_target.yaw_rate = 0.0;
-	
+	cmd_pos_target.type_mask = 3064;
+	cmd_pos_target.position.x = right;
+	cmd_pos_target.position.y = forward;
+	cmd_pos_target.position.z = up;
+	cmd_pos_target.yaw = yaw_rad;
+
 	_pub_mavPositionTarget.publish(cmd_pos_target);
 }
 
@@ -324,12 +325,12 @@ double mavrosCommand::distanceBetweenCordinates(double lat1, double long1, doubl
 double mavrosCommand::getBearingBetweenCoordinates(double lat1, double long1, double lat2, double long2)
 {
     double x,y;
-    x = cos(toRad(lat2)) * sin(toRad(abs(long2 - long1)));
+    x = cos(toRad(lat2)) * sin(toRad((long2 - long1)));
     cout<< "X "<<x<<endl;
-    y = cos(toRad(lat1)) * sin(toRad(lat2)) - sin(toRad(lat1)) * cos(toRad(lat2)) * cos(toRad(abs(long2 - long1)));
+    y = cos(toRad(lat1)) * sin(toRad(lat2)) - sin(toRad(lat1)) * cos(toRad(lat2)) * cos(toRad((long2 - long1)));
     cout<< "Y "<<y<<endl;
- 
-    return atan2(x, y) / PI * 180;
+    
+    return fmod(atan2(x, y) / PI * 180 + 360, 360);
 }
 
 void mavrosCommand::initSubscribers(){

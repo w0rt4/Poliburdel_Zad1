@@ -29,7 +29,7 @@
 using namespace std;
 
 string get_username();
-void savePicture(cv::Mat frame, int cntr);
+void savePicture(cv::Mat frame, int cntr, int iterator);
 void bwPicture(cv::Mat in_frame, int cntr);
 
 class mavrosCommand {
@@ -48,7 +48,8 @@ public:
 	
 	//publishers
 	void flyTo(double latitude, double longitude, double altitude);
-	void slowDown(double counterForce);
+	void flyToLocal(double forward,double right, double up, float yaw );
+	
 	
 	//subscribers
 	double getCompassHeading();
