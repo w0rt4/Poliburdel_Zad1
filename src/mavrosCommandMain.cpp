@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 
 	i=0;
 	
-	/*VideoCapture cap(0);
+	VideoCapture cap(0);
 	cap.set(CV_CAP_PROP_FRAME_WIDTH,1920);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
 	
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]){
 	} 
 
 	int cntr = 0;
-	Mat frame;*/
+	Mat frame;
 	
 	while (ros::ok()) {
 		
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
 			loopCounter = 0;
 		}
 		
-/*if(loopCounter1 >= pictureFrequency && isMapping == true){
+		if(loopCounter1 >= pictureFrequency && isMapping == true){
 			
 			cap.read(frame);
 			
@@ -115,14 +115,14 @@ int main(int argc, char* argv[]){
 			
 			cntr++;
 			loopCounter1 = 0;
-		}*/
+		}
 		
 		loopCounter++;
 		loopCounter1++;
 		ros::spinOnce();
 		loop_rate.sleep();
 	}	
-	//cap.release();
+	cap.release();
 	return 0;
 }
 
@@ -427,7 +427,7 @@ bool getCordinates(mavrosCommand command){
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5, fmod((bearing - 90 + 360), 360), x, y);
+				getLatLongShift(command, 5.4, fmod((bearing - 90 + 360), 360), x, y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
