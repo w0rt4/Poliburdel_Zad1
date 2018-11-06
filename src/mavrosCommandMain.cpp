@@ -59,7 +59,7 @@ void takeOffHome(mavrosCommand command);
 void nextPoint(mavrosCommand command);
 void flyHome(mavrosCommand command);
 void landHome(mavrosCommand command);
-void getLatLongShift(mavrosCommand command, double length, double angle, double pointLatitude, double pointLongitude);
+void getLatLongShift(mavrosCommand command, double length, double angle, double &pointLatitude, double &pointLongitude);
 bool getCordinates(mavrosCommand command);
 
 
@@ -258,7 +258,7 @@ void landHome(mavrosCommand command)
 	}
 }
 
-void getLatLongShift(mavrosCommand command, double length, double angle, double* pointLatitude, double* pointLongitude)
+void getLatLongShift(mavrosCommand command, double length, double angle, double &pointLatitude, double &pointLongitude)
 {
 	/*double easting, northing;
 	int zone;
@@ -276,8 +276,8 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 	double lat = command.toRad(pointLatitude);
 	double lng = command.toRad(pointLongitude);
 	
-	double lat2 = asin(sin(lat) * cos((length / 1000) / 6378.1) + cos(lat) * sin(length / 1000) / 6378.1) * cos(command.toRad(angle));
-	double lng2 = lng + atan2(sin(command.toRad(angle)) * sin(length / 1000) / 6378.1) * cos(lat), cos(sin(length / 1000) / 6378.1)) - sin(lat) * sin(lat2));
+	double lat2 = asin(sin(lat) * cos((length / 1000) / 6378.1) + cos(lat) * sin((length / 1000) / 6378.1) * cos(command.toRad(angle)));
+	double lng2 = lng + atan2(sin(command.toRad(angle)) * sin((length / 1000) / 6378.1) * cos(lat), cos((length / 1000) / 6378.1) - sin(lat) * sin(lat2));
 	
 	pointLatitude = lat2 / 3.14159265 * 180;
 	pointLongitude = lng2 / 3.14159265 * 180;
@@ -378,17 +378,17 @@ bool getCordinates(mavrosCommand command){
 			cout << bearing << endl;
 			
 			// Zakrety test
-			getLatLongShift(command, 9.2, fmod((bearing + 100  + 360), 360), &x, &y);
+			getLatLongShift(command, 9.2, fmod((bearing + 100  + 360), 360), x, y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
 			
-			getLatLongShift(command, 5.4, fmod((bearing + 44 + 360), 360), &x, &y);
+			getLatLongShift(command, 5.4, fmod((bearing + 44 + 360), 360), x, y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
 			
-			getLatLongShift(command, 5, fmod((bearing + 10 + 360), 360), &x, &y);
+			getLatLongShift(command, 5, fmod((bearing + 10 + 360), 360), x, y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
@@ -422,17 +422,17 @@ bool getCordinates(mavrosCommand command){
 			if(jk < scanCount - 1) 
 			{
 				// Zakrety test
-				getLatLongShift(command, 9.2, fmod((bearing + 180 + 360), 360), &x, &y);
+				getLatLongShift(command, 9.2, fmod((bearing + 180 + 360), 360), x, y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5, fmod((bearing + 220 + 360), 360), &x, &y);
+				getLatLongShift(command, 5, fmod((bearing + 220 + 360), 360), x, y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5, fmod((bearing + 240 + 360), 360), &x, &y);
+				getLatLongShift(command, 5, fmod((bearing + 240 + 360), 360), x, y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
