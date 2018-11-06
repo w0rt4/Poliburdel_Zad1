@@ -261,7 +261,7 @@ void landHome(mavrosCommand command)
 
 void getLatLongShift(mavrosCommand command, double length, double angle, double* pointLatitude, double* pointLongitude)
 {
-	double easting, northing;
+	/*double easting, northing;
 	int zone;
  	bool northp;
 	UTMUPS::Forward(*pointLatitude, *pointLongitude, zone, northp, easting, northing);
@@ -272,7 +272,16 @@ void getLatLongShift(mavrosCommand command, double length, double angle, double*
 	northing += longitudeShift;
 	easting += latitudeShift;
 	
-	UTMUPS::Reverse(zone, northp, easting, northing, *pointLatitude, *pointLongitude);
+	UTMUPS::Reverse(zone, northp, easting, northing, *pointLatitude, *pointLongitude);*/
+	
+	double lat = command.toRad(pointLatitude);
+	double lng = command.toRad(pointLongitude);
+	
+	double lat2 = asin(sin(lat) * cos((length / 1000) / 6378.1) + cos(lat) * sin(length / 1000) / 6378.1) * cos(command.toRad(angle));
+	double lng2 = lng + atan2(sin(command.toRad(angle)) * sin(length / 1000) / 6378.1) * cos(lat), cos(sin(length / 1000) / 6378.1)) - sin(lat) * sin(lat2));
+	
+	pointLatitude = lat2 / 3.14159265 * 180;
+	pointLongitude = lng2 / 3.14159265 * 180;
 }
 
 bool getCordinates(mavrosCommand command){
