@@ -53,7 +53,7 @@ int loopCounter1=0;
 double cordinatesPrecision = 0.00002;//0.000005;
 //////////////////
 
-void mission(mavrosCommand command);
+bool mission(mavrosCommand command);
 bool waitForStart(mavrosCommand command);
 void takeOffHome(mavrosCommand command);
 void nextPoint(mavrosCommand command);

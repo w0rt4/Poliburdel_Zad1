@@ -77,7 +77,6 @@ mavrosCommand::mavrosCommand(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 	_clientGuided = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 	_clientLand = nh_.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
 	_clientServo = nh_.serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
-	_clientPicture = nh_.serviceClient<std_srvs::Empty>("/image_saver/save");
 	
 	_pub_mav = nh_.advertise<mavros_msgs::GlobalPositionTarget>("/mavros/setpoint_raw/global",100);
 	_pub_mavPositionTarget = nh_.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local",100);
@@ -89,8 +88,6 @@ mavrosCommand::mavrosCommand(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 	_stateSub = nh_.subscribe("/mavros/state", 100, &mavrosCommand::stateCb, this);
 	_globalPositionRelAltitudeSub = nh_.subscribe("/mavros/global_position/rel_alt", 100, &mavrosCommand::globalPostionRelAltitudeCb, this);
 	_timeReferenceSub = nh_.subscribe("/mavros/time_reference", 100, &mavrosCommand::timeReferenceCb, this);
-	_qrMessageSub = nh_.subscribe("/visp_auto_tracker/code_message", 100, &mavrosCommand::qrMessageCb, this);
-	_qrPositionSub = nh_.subscribe("/visp_auto_tracker/object_position", 100, &mavrosCommand::qrPositionCb, this);
 }
 
 mavrosCommand::~mavrosCommand(){
