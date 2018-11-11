@@ -42,7 +42,9 @@ bool isMapping = false; //is drone mapping at the moment
 bool precisionLanding = false;
 double dronAltitude;
 double pictureFrequency = 40; //40 = 1 photo per  two seconds
-
+mutex mtx;
+string recipientName;
+string recipientIP;
 
 //Czestotliwosc do ustawienia w Hz
 int frequency = 20;
@@ -61,8 +63,8 @@ void flyHome(mavrosCommand command);
 void landHome(mavrosCommand command);
 void getLatLongShift(mavrosCommand command, double length, double angle, double &pointLatitude, double &pointLongitude);
 bool getCordinates(mavrosCommand command);
-
-
+void sendPicture(string recipientName, string recipientIP);
+bool fileExists(const string& name);
 
 int main(int argc, char* argv[]){
 
@@ -95,6 +97,11 @@ int main(int argc, char* argv[]){
 
 	int cntr = 0;
 	Mat frame;
+	
+	cout << recipientName << recipientIP << endl;
+	
+	thread send = thread(sendPicture, recipientName, recipientIP);
+	send.detach();
 	
 	while (ros::ok()) {
 		
@@ -133,8 +140,83 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
+void sendPicture(string recipientName, string recipientIP)
+{	
+	int pictureSendCount = 0;
+	
+	mtx.lock();
+	int stateCopy = currentState;
+	mtx.unlock();
+	while(stateCopy != END)
+	{
+		string name = get_username();
+		if (fileExists("/home/" + name + "/zdj/" + to_string(pictureSendCount) + ".jpg"))
+		{
+			char buffer[128];
+			string result = "";
+			string scp = "scp /home/" + name + string("/zdj/") + to_string(pictureSendCount) + string(".jpg ") + recipientName + string("@") + recipientIP + string(":/home/") + recipientName + string("/zdj");
+			FILE* pipe = popen(scp.c_str(), "r");
+			if (pipe)
+			{
+				try
+				{
+					while (!feof(pipe))
+					{
+						if (fgets(buffer, 128, pipe) != NULL)
+						{
+							result += buffer;
+						}
+					}
+				}
+				catch (...)
+				{
+					cout<<"Error during sending file " << pictureSendCount << endl;
+					pclose(pipe);
+					
+					mtx.lock();
+					stateCopy = currentState;
+					mtx.unlock();
+					
+					continue;
+				}
+				
+				pclose(pipe);	
+			}
+		
+			if (result.empty())
+			{
+				cout << "PICTURE " << pictureSendCount << " SEND" << endl;
+				pictureSendCount++;
+			}			
+		}
+		else
+		{
+			sleep(5);
+		}
+		
+		mtx.lock();
+		stateCopy = currentState;
+		mtx.unlock();
+	}
+}
+
+bool fileExists(const string& name)
+{
+	if (FILE *file = fopen(name.c_str(), "r"))
+	{
+		fclose(file);
+		return true;
+	}
+	
+	return false;
+}
+
 bool mission(mavrosCommand command){
-	switch(currentState){
+	mtx.lock();
+	int stateCopy = currentState;
+	mtx.unlock();
+	
+	switch(stateCopy){
 		case WAIT_FOR_START:
 			if(isInit == true)
 			{
@@ -193,7 +275,9 @@ bool waitForStart(mavrosCommand command){
 	sleep(1);
 	
 	command.takeOff(missionAltitude);
+	mtx.lock();
 	currentState = TAKEOFF_HOME;
+	mtx.unlock();
 	sleep(3);
 	command.flyTo(command.getGlobalPositionLatitude(), command.getGlobalPositionLongitude(), missionAltitude);
 
@@ -204,7 +288,9 @@ void takeOffHome(mavrosCommand command){
 	
 	cout<<"CURRENT ALTITUDE: "<< command.getGlobalPositionAltitude() - homeAltitude <<endl;
 	if(command.getGlobalPositionAltitude() - homeAltitude >= missionAltitude){
+		mtx.lock();
 		currentState = NEXT_POINT;
+		mtx.unlock();
 		command.flyTo(latitude[i], longitude[i], missionAltitude);
 		dronAltitude = missionAltitude;
 		cout<<"RIGHT ALTITUDE"<<endl;
@@ -230,7 +316,9 @@ void nextPoint(mavrosCommand command){
 		i++;
 		
 		if(i >= pointsCount + 1){ //IS IN HOME POSITION?
+			mtx.lock();
 			currentState = LAND_HOME;
+			mtx.unlock();
 			dronAltitude = 5;
 			command.flyTo(homeLatitude, homeLongitude, dronAltitude);
 			return;
@@ -277,7 +365,12 @@ void landHome(mavrosCommand command)
 	else
 	{
 		cout<<command.getArmed()<<endl;
-		if(!command.getArmed())currentState = END;
+		if(!command.getArmed())
+		{
+			mtx.lock();
+			currentState = END;
+			mtx.unlock();
+		}
 	}
 }
 
@@ -323,6 +416,8 @@ bool getCordinates(mavrosCommand command){
  	
  	missionAltitude = missionSettings["mission"]["altitude"];
  	pictureFrequency = missionSettings["mission"]["photosFrequency"];
+ 	recipientName = missionSettings["mission"]["recipientName"];
+ 	recipientIP = missionSettings["mission"]["recipientIP"];
  	
  	double leftDownLongitude = missionSettings["mission"]["leftDown"]["longitude"];
  	double leftDownLatitude = missionSettings["mission"]["leftDown"]["latitude"];

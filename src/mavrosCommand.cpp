@@ -24,14 +24,14 @@ void savePicture(Mat in_frame, int cntr, int iterator)
 	string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
 	imwrite(savingName, in_frame);
 	cout << "PICTURE: " << cntr << " SAVED" << endl;
-	string scp = "scp " + savingName + " odroid@10.0.0.1:/home/odroid/zdj";
+	/*string scp = "scp " + savingName + " odroid@10.0.0.1:/home/odroid/zdj";
 	//const char exec = scp.c_str();
 	
 	cout<<scp<<endl;
 	if(system(scp.c_str())==0) 
 		printf("\nFile %s moved successfully\n",savingName);
 	else
-		printf("\nFile %s not moved successfully\n",savingName);
+		printf("\nFile %s not moved successfully\n",savingName);*/
 }
 
 void bwPicture(Mat in_frame, int cntr)

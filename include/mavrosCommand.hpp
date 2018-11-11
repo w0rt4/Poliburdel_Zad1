@@ -21,6 +21,7 @@
 #include <pwd.h>
 #include <thread>
 #include <vector>
+#include <mutex>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>

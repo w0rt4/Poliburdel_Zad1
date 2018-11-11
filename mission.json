@@ -2,6 +2,8 @@
 	"mission": {
 		"altitude": 30,
 		"photosFrequency": 2,
+		"recipientName": "odroid",
+		"recipientIP": "10.0.0.1",
 		"leftDown": {
 			"latitude": -37.624280,
 			"longitude": 145.126363
@@ -13,6 +15,6 @@
 		"rightDown": {
 			"latitude": -37.622939,
 			"longitude": 145.126682
-}
+		}
 	}
 }
