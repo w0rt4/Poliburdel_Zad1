@@ -17,7 +17,7 @@
 #include "mavros_msgs/RCIn.h"
 
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <pwd.h>
 #include <thread>
 #include <vector>
@@ -35,21 +35,20 @@ void bwPicture(cv::Mat in_frame, int cntr);
 class mavrosCommand {
 public:
 	
-	mavrosCommand();
+	mavrosCommand(ros::NodeHandle* nodehandle);
 	
 	virtual ~mavrosCommand();
 	
 	//services
 	void land();
-	void guided();
-	void arm();
+	bool guided();
+	bool arm();
 	void takeOff(double altitude);
 	void servo(double width);
 	
 	//publishers
 	void flyTo(double latitude, double longitude, double altitude);
-	void flyToLocal(double forward,double right, double up, float yaw );
-	
+	void flyToLocal(double forward,double right, double up, float yaw);
 	
 	//subscribers
 	double getCompassHeading();
@@ -82,9 +81,7 @@ public:
 	
 	
 private:
-	void init();
-	
-	ros::NodeHandle _nh;
+	ros::NodeHandle nh_;
 	
 	ros::ServiceClient _client;
 	ros::ServiceClient _clientTakeOff;

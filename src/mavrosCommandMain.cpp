@@ -54,7 +54,7 @@ double cordinatesPrecision = 0.00002;//0.000005;
 //////////////////
 
 void mission(mavrosCommand command);
-void waitForStart(mavrosCommand command);
+bool waitForStart(mavrosCommand command);
 void takeOffHome(mavrosCommand command);
 void nextPoint(mavrosCommand command);
 void flyHome(mavrosCommand command);
@@ -67,7 +67,9 @@ bool getCordinates(mavrosCommand command);
 int main(int argc, char* argv[]){
 
 	ros::init(argc, argv, "mapping");
-	mavrosCommand command;
+	ros::NodeHandle nh;
+	
+	mavrosCommand command(&nh);
 	
 	ros::Rate loop_rate(frequency);
 	sleep(1);
@@ -97,7 +99,12 @@ int main(int argc, char* argv[]){
 	while (ros::ok()) {
 		
 		if(loopCounter >= 10){
-			mission(command);
+			if(!mission(command))
+			{
+				cap.release();
+				return 1;
+			}
+			
 			loopCounter = 0;
 		}
 		
@@ -126,11 +133,18 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void mission(mavrosCommand command){
+bool mission(mavrosCommand command){
 	switch(currentState){
 		case WAIT_FOR_START:
-			if(isInit == true)waitForStart(command);
-			else{
+			if(isInit == true)
+			{
+				if(!waitForStart(command))
+				{
+					return false;
+				}
+			}
+			else
+			{
 				command.initSubscribers();
 				isInit = true;
 			}
@@ -152,9 +166,11 @@ void mission(mavrosCommand command){
 
 		break;
 	}
+	
+	return true;
 }
 
-void waitForStart(mavrosCommand command){
+bool waitForStart(mavrosCommand command){
 	
 	homeLatitude = command.getGlobalPositionLatitude();
 	homeLongitude = command.getGlobalPositionLongitude();
@@ -164,17 +180,24 @@ void waitForStart(mavrosCommand command){
 	longitude[pointsCount] = homeLongitude;
 	
 	dronAltitude = missionAltitude;
-	command.guided();
+	if(!command.guided())
+	{
+		return false;
+	}
 	sleep(1);
 
-	command.arm();
+	if(!command.arm())
+	{
+		return false;
+	}
 	sleep(1);
-
+	
 	command.takeOff(missionAltitude);
 	currentState = TAKEOFF_HOME;
 	sleep(3);
 	command.flyTo(command.getGlobalPositionLatitude(), command.getGlobalPositionLongitude(), missionAltitude);
-	
+
+	return true;	
 }
 
 void takeOffHome(mavrosCommand command){
