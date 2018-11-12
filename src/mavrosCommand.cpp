@@ -16,7 +16,7 @@ string get_username() {
 void savePicture(Mat in_frame, int cntr, int iterator)
 {	
 	iterator--;
-	if (iterator % 10 != 0)
+	if (iterator % 12 != 0)
 	{	
 		rotate(in_frame, in_frame, ROTATE_180);
 	}

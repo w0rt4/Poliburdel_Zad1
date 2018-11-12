@@ -324,15 +324,22 @@ void nextPoint(mavrosCommand command){
 			return;
 		}
 		
-		if(i % 5 == 1)
+		if(i % 6 == 1)
 		{
+			cout << "Mapuje" << endl;
 			isMapping = true;
+			cordinatesPrecision = 0.00002;
+		}
+		else if (i % 6 == 0)
+		{
+			isMapping = false;
 			cordinatesPrecision = 0.00002;
 		}
 		else
 		{
-			 isMapping = false;
-			 cordinatesPrecision = 0.00008;
+			cout << "Nie Mapuje " <<i % 5<< endl;
+			isMapping = false;
+			cordinatesPrecision = 0.00006;
 		}
 		
 		command.flyTo(latitude[i], longitude[i], missionAltitude);
@@ -501,7 +508,12 @@ bool getCordinates(mavrosCommand command){
 			longitude[pointsCount] = y;
 			pointsCount++;
 			
-			getLatLongShift(command, 5.4, fmod((bearing + 90 + 360), 360), x, y);
+			getLatLongShift(command, 5.4, fmod((bearing + 60 + 360), 360), x, y);
+			latitude[pointsCount] = x;
+			longitude[pointsCount] = y;
+			pointsCount++;
+			
+			getLatLongShift(command, 6, fmod((bearing + 90 + 360), 360), x, y);
 			latitude[pointsCount] = x;
 			longitude[pointsCount] = y;
 			pointsCount++;
@@ -545,7 +557,12 @@ bool getCordinates(mavrosCommand command){
 				longitude[pointsCount] = y;
 				pointsCount++;
 			
-				getLatLongShift(command, 5.4, fmod((bearing - 90 + 360), 360), x, y);
+				getLatLongShift(command, 5.4, fmod((bearing - 60 + 360), 360), x, y);
+				latitude[pointsCount] = x;
+				longitude[pointsCount] = y;
+				pointsCount++;
+			
+				getLatLongShift(command, 6, fmod((bearing - 90 + 360), 360), x, y);
 				latitude[pointsCount] = x;
 				longitude[pointsCount] = y;
 				pointsCount++;
