@@ -17,6 +17,8 @@
 #include "mavros_msgs/RCIn.h"
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <string>
 #include <pwd.h>
 #include <thread>
@@ -30,7 +32,7 @@
 using namespace std;
 
 string get_username();
-void savePicture(cv::Mat frame, int cntr, int iterator);
+void savePicture(cv::Mat frame, int cntr, int iterator, double Latitude, double longitude, double Heading);
 void bwPicture(cv::Mat in_frame, int cntr);
 
 class mavrosCommand {

@@ -13,17 +13,27 @@ string get_username() {
         return "odroid";
 }
 
-void savePicture(Mat in_frame, int cntr, int iterator)
+void savePicture(Mat in_frame, int cntr, int iterator, double Latitude, double Longitude, double Heading)
 {	
 	iterator--;
-	if (iterator % 10 != 0)
+	if (iterator % 12 != 0)
 	{	
 		rotate(in_frame, in_frame, ROTATE_180);
 	}
 	string name = get_username();
 	string savingName = "/home/" + name + "/zdj/" + to_string(cntr) + ".jpg";
 	imwrite(savingName, in_frame);
+	resize(in_frame, in_frame, Size(), 0.5, 0.5 , INTER_AREA);
+	savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".jpg";
+	imwrite(savingName, in_frame);
 	cout << "PICTURE: " << cntr << " SAVED" << endl;
+	savingName = "/home/" + name + "/zdj2/" + to_string(cntr) + ".txt";
+	ofstream positionFile;
+	positionFile.open (savingName);
+	positionFile << setprecision(9) << Latitude << "\n";
+	positionFile << setprecision(9) << Longitude << "\n";
+	positionFile << setprecision(9) << Heading << "\n";
+	positionFile.close();
 }
 
 void bwPicture(Mat in_frame, int cntr)
