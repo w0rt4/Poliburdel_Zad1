@@ -87,7 +87,8 @@ int main(int argc, char* argv[]){
 	VideoCapture cap(0);
 	cap.set(CV_CAP_PROP_FRAME_WIDTH,1920);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
-	
+	Mat frame;
+	cap.read(frame);
 	
 	if (cap.isOpened() == false)  
 	{
@@ -96,9 +97,6 @@ int main(int argc, char* argv[]){
 	} 
 
 	int cntr = 0;
-	Mat frame;
-	
-	cout << recipientName << recipientIP << endl;
 	
 	thread send = thread(sendPicture, recipientName, recipientIP);
 	send.detach();
@@ -119,14 +117,18 @@ int main(int argc, char* argv[]){
 			
 			cap.read(frame);
 			
-			thread save = thread(savePicture, frame, cntr, i);
-			save.detach();
+			thread save = thread(savePicture, frame, cntr, i, 
+								 command.getGlobalPositionLatitude(), 
+								 command.getGlobalPositionLongitude(), 
+								 command.getCompassHeading());
 			
+			save.detach();
+			/*
 			Mat copyFrame = frame;
 			
 			thread bw_save = thread(bwPicture, copyFrame, cntr);
 			bw_save.detach();
-			
+			*/
 			cntr++;
 			loopCounter1 = 0;
 		}
@@ -143,6 +145,8 @@ int main(int argc, char* argv[]){
 void sendPicture(string recipientName, string recipientIP)
 {	
 	int pictureSendCount = 0;
+	int pictureSendCount2 = 0;
+	int txtSendCount = 0;
 	
 	mtx.lock();
 	int stateCopy = currentState;
@@ -154,7 +158,7 @@ void sendPicture(string recipientName, string recipientIP)
 		{
 			char buffer[128];
 			string result = "";
-			string scp = "scp /home/" + name + string("/zdj/") + to_string(pictureSendCount) + string(".jpg ") + recipientName + string("@") + recipientIP + string(":/home/") + recipientName + string("/zdj");
+			string scp = "scp /home/" + name + string("/zdj/") + to_string(pictureSendCount) + string(".jpg ") + recipientName + string("@") + recipientIP + string(":/home/") + recipientName + string("/zdj/");
 			FILE* pipe = popen(scp.c_str(), "r");
 			if (pipe)
 			{
@@ -167,27 +171,86 @@ void sendPicture(string recipientName, string recipientIP)
 							result += buffer;
 						}
 					}
+		
+					if (result.empty())
+					{
+						cout << "PICTURE " << pictureSendCount << " SEND" << endl;
+						pictureSendCount++;
+					}
 				}
 				catch (...)
 				{
 					cout<<"Error during sending file " << pictureSendCount << endl;
-					pclose(pipe);
-					
-					mtx.lock();
-					stateCopy = currentState;
-					mtx.unlock();
-					
-					continue;
 				}
 				
 				pclose(pipe);	
-			}
-		
-			if (result.empty())
-			{
-				cout << "PICTURE " << pictureSendCount << " SEND" << endl;
-				pictureSendCount++;
 			}			
+		}
+		
+		if (fileExists("/home/" + name + "/zdj2/" + to_string(pictureSendCount2) + ".jpg"))
+		{
+			char buffer[128];
+			string result = "";
+			string scp = "scp /home/" + name + string("/zdj2/") + to_string(pictureSendCount2) + string(".jpg ") + recipientName + string("@") + recipientIP + string(":/home/") + recipientName + string("/zdj2/");
+			FILE* pipe = popen(scp.c_str(), "r");
+			if (pipe)
+			{
+				try
+				{
+					while (!feof(pipe))
+					{
+						if (fgets(buffer, 128, pipe) != NULL)
+						{
+							result += buffer;
+						}
+					}
+		
+					if (result.empty())
+					{
+						cout << "PICTURE " << pictureSendCount2 << " SEND" << endl;
+						pictureSendCount2++;
+					}
+				}
+				catch (...)
+				{
+					cout<<"Error during sending file " << pictureSendCount2 << endl;
+				}
+				
+				pclose(pipe);	
+			}			
+		}
+		
+		if (fileExists("/home/" + name + "/zdj2/" + to_string(txtSendCount) + ".txt"))
+		{
+			char buffer[128];
+			string result = "";
+			string scp = "scp /home/" + name + string("/zdj2/") + to_string(txtSendCount) + string(".txt ") + recipientName + string("@") + recipientIP + string(":/home/") + recipientName + string("/zdj2/");
+			FILE* pipe = popen(scp.c_str(), "r");
+			if (pipe)
+			{
+				try
+				{
+					while (!feof(pipe))
+					{
+						if (fgets(buffer, 128, pipe) != NULL)
+						{
+							result += buffer;
+						}
+					}
+
+					if (result.empty())
+					{
+						cout << "PICTURE " << txtSendCount << " SEND" << endl;
+						txtSendCount++;
+					}	
+				}
+				catch (...)
+				{
+					cout<<"Error during sending file " << txtSendCount << endl;
+				}
+				
+				pclose(pipe);	
+			}		
 		}
 		else
 		{
@@ -580,5 +643,3 @@ bool getCordinates(mavrosCommand command){
 	
 	return true;
 }
-
-
