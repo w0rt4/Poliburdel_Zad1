@@ -2,19 +2,19 @@
 	"mission": {
 		"altitude": 30,
 		"photosFrequency": 2,
-		"recipientName": "odroid",
-		"recipientIP": "10.0.0.1",
+		"recipientName": "maciej",
+		"recipientIP": "192.168.0.100",
 		"leftDown": {
-			"latitude": -37.624280,
-			"longitude": 145.126363
+			"latitude": 53.117720,
+			"longitude": 23.147192
 		},
 		"leftUp": {
-			"latitude": -37.624133,
-			"longitude": 145.123534
+			"latitude": 53.119449,
+			"longitude": 23.146249
 		},
 		"rightDown": {
-			"latitude": -37.622939,
-			"longitude": 145.126682
+			"latitude": 53.118207,
+			"longitude": 23.149548
 		}
 	}
 }
